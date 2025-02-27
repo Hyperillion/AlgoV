@@ -17,6 +17,19 @@ const yolo_classes = [
   "toothbrush"
 ];
 
+const class_colors = [
+  "#F4A460", "#8FBC8F", "#4682B4", "#B0C4DE", "#D8BFD8", "#5F9EA0", "#FF6347", "#FFD700", 
+  "#9ACD32", "#20B2AA", "#6495ED", "#6A5ACD", "#708090", "#C71585", "#DB7093", "#A9A9A9",
+  "#2E8B57", "#556B2F", "#8B4513", "#D2691E", "#CD853F", "#DAA520", "#32CD32", "#87CEEB",
+  "#4169E1", "#8A2BE2", "#9400D3", "#BA55D3", "#FF4500", "#FF8C00", "#FFA07A", "#FFA500",
+  "#B22222", "#DC143C", "#FF0000", "#FF69B4", "#FF1493", "#FFB6C1", "#FFC0CB", "#ADFF2F",
+  "#7FFF00", "#00FF00", "#7CFC00", "#00FA9A", "#00FF7F", "#3CB371", "#2E8B57", "#66CDAA",
+  "#00CED1", "#4682B4", "#1E90FF", "#5F9EA0", "#00BFFF", "#ADD8E6", "#87CEFA", "#4682B4",
+  "#B0C4DE", "#708090", "#778899", "#6A5ACD", "#483D8B", "#7B68EE", "#9370DB", "#8A2BE2",
+  "#9400D3", "#9932CC", "#BA55D3", "#DA70D6", "#EE82EE", "#DDA0DD", "#C71585", "#DB7093",
+  "#FF1493", "#FF69B4", "#FFB6C1", "#FFC0CB", "#FAEBD7", "#F5F5DC", "#FFE4C4", "#FFF8DC"
+];
+
 let interval;
 let boxes = [];
 let busy = false;
@@ -44,7 +57,7 @@ video.addEventListener("play", () => {
   changeP5CanvasSize(canvas.width, canvas.height);
   const context = canvas.getContext("2d");
   interval = setInterval(() => {
-    console.log("interval");
+    // console.log("interval");
     context.drawImage(video, 0, 0);
     // draw_boxes(canvas, boxes);
     drawBox = true;
@@ -81,8 +94,8 @@ worker.onmessage = (event) => {
     inferCount++;
     totalInferTime += inferTime;
     const averageInferTime = parseInt(totalInferTime / inferCount);
-    console.log(`Infer count: ${inferCount}`);
-    console.log(`Average infer time: ${averageInferTime} ms`);
+    // console.log(`Infer count: ${inferCount}`);
+    // console.log(`Average infer time: ${averageInferTime} ms`);
 
     const canvas = document.querySelector("canvas");
     boxes = process_output(output.result, canvas.width, canvas.height);
@@ -129,13 +142,14 @@ function process_output(output, img_width, img_height) {
     const yc = output[num_objects + index]; // Center Y
     const w = output[2 * num_objects + index]; // Width
     const h = output[3 * num_objects + index]; // Height
+    const class_color = class_colors[class_id];
 
     const x1 = ((xc - w / 2) / 640) * img_width;
     const y1 = ((yc - h / 2) / 640) * img_height;
     const x2 = ((xc + w / 2) / 640) * img_width;
     const y2 = ((yc + h / 2) / 640) * img_height;
 
-    boxes.push([x1, y1, x2, y2, label, prob]);
+    boxes.push([x1, y1, x2, y2, label, prob, class_color]);
   }
 
   boxes = boxes.sort((box1, box2) => box2[5] - box1[5]);
@@ -169,28 +183,28 @@ function intersection(box1, box2) {
   return (x2 - x1) * (y2 - y1);
 }
 
-function draw_boxes(canvas, boxes) {
-  const ctx = canvas.getContext("2d");
-  ctx.strokeStyle = "#00FF00";
-  ctx.lineWidth = 3;
-  ctx.font = "18px serif";
-  boxes.forEach(([x1, y1, x2, y2, label]) => {
-    ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
-    ctx.fillStyle = "#00ff00";
-    const width = ctx.measureText(label).width;
-    ctx.fillRect(x1, y1, width + 10, 25);
-    ctx.fillStyle = "#000000";
-    ctx.fillText(label, x1, y1 + 18);
-  });
+// function draw_boxes(canvas, boxes) {
+//   const ctx = canvas.getContext("2d");
+//   ctx.strokeStyle = "#00FF00";
+//   ctx.lineWidth = 3;
+//   ctx.font = "18px serif";
+//   boxes.forEach(([x1, y1, x2, y2, label]) => {
+//     ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+//     ctx.fillStyle = "#00ff00";
+//     const width = ctx.measureText(label).width;
+//     ctx.fillRect(x1, y1, width + 10, 25);
+//     ctx.fillStyle = "#000000";
+//     ctx.fillText(label, x1, y1 + 18);
+//   });
 
-  // 绘制 Infer count 和 Average infer time
-  ctx.font = "16px Arial";
-  ctx.fillStyle = "black";
-  ctx.fillText(`Infer count: ${inferCount}`, 10, 20);
-  ctx.fillText(
-    `Average infer time: ${inferCount ? parseInt(totalInferTime / inferCount) : 0
-    } ms`,
-    10,
-    40,
-  );
-}
+//   // 绘制 Infer count 和 Average infer time
+//   ctx.font = "16px Arial";
+//   ctx.fillStyle = "black";
+//   ctx.fillText(`Infer count: ${inferCount}`, 10, 20);
+//   ctx.fillText(
+//     `Average infer time: ${inferCount ? parseInt(totalInferTime / inferCount) : 0
+//     } ms`,
+//     10,
+//     40,
+//   );
+// }
