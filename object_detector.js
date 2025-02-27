@@ -22,11 +22,14 @@ let boxes = [];
 let busy = false;
 let inferCount = 0;
 let totalInferTime = 0;
+let drawBox = false;
 
 window.navigator.mediaDevices
-  .getUserMedia({ video:{
-    facingMode: 'environment'
-  } })
+  .getUserMedia({
+    video: {
+      facingMode: 'environment'
+    }
+  })
   .then((stream) => {
     video.srcObject = stream;
   })
@@ -38,15 +41,17 @@ video.addEventListener("play", () => {
   const canvas = document.querySelector("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
+  changeP5CanvasSize(canvas.width, canvas.height);
   const context = canvas.getContext("2d");
   interval = setInterval(() => {
     console.log("interval");
     context.drawImage(video, 0, 0);
-    draw_boxes(canvas, boxes);
+    // draw_boxes(canvas, boxes);
+    drawBox = true;
     const input = prepare_input(canvas);
     if (!busy) {
-      const startTime = performance.now(); // 记录开始时间
-      worker.postMessage({ input, startTime }); // 将开始时间发送到 worker
+      const startTime = performance.now();
+      worker.postMessage({ input, startTime });
       busy = true;
     }
   }, 30);
@@ -71,8 +76,8 @@ worker.onmessage = (event) => {
     document.getElementById("loading").style.display = "none";
     document.getElementById("btn-group").style.display = "block";
   } else if (output.type === "modelResult") {
-    const endTime = performance.now(); // 记录结束时间
-    const inferTime = endTime - output.startTime; // 计算执行时间
+    const endTime = performance.now();
+    const inferTime = endTime - output.startTime;
     inferCount++;
     totalInferTime += inferTime;
     const averageInferTime = parseInt(totalInferTime / inferCount);
@@ -115,7 +120,7 @@ function process_output(output, img_width, img_height) {
       .map((col) => [col, output[num_objects * (col + 4) + index]])
       .reduce((accum, item) => (item[1] > accum[1] ? item : accum), [0, 0]);
 
-    if (prob < 0.5) {
+    if (prob < 0.3) {
       continue;
     }
 
@@ -183,8 +188,7 @@ function draw_boxes(canvas, boxes) {
   ctx.fillStyle = "black";
   ctx.fillText(`Infer count: ${inferCount}`, 10, 20);
   ctx.fillText(
-    `Average infer time: ${
-      inferCount ? parseInt(totalInferTime / inferCount) : 0
+    `Average infer time: ${inferCount ? parseInt(totalInferTime / inferCount) : 0
     } ms`,
     10,
     40,
