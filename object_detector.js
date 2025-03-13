@@ -1,5 +1,5 @@
-//https://github.com/satorioh/yolov8_onnx_js
-
+//modified base on https://github.com/satorioh/yolov8_onnx_js
+//@Hyperillion
 const video = document.querySelector("video");
 const worker = new Worker("worker.js");
 const yolo_classes = [

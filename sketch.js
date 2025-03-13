@@ -53,5 +53,5 @@ function draw_boxes_p5(boxes, inferCount, totalInferTime) {
   noStroke();
   text(`Infer count: ${inferCount}`, 10, 20);
   let avgTime = inferCount ? int(totalInferTime / inferCount) : 0;
-  text(`Average infer time: ${avgTime} ms`, 10, 40);
+  text(`Average time: ${avgTime} ms`, 10, 40);
 }
